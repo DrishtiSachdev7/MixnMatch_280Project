@@ -19,6 +19,8 @@ import {
   TrendingUp,
   Target,
   Award,
+  UserCheck,
+  BarChart3,
 } from "lucide-react";
 import heroImage from "@/assets/hero-cooking.jpg";
 import stirfryImage from "@/assets/recipe-stirfry.jpg";
@@ -31,10 +33,92 @@ import avatarSarah from "@/assets/avatar-sarah.jpg";
 import avatarJames from "@/assets/avatar-james.jpg";
 import avatarEmma from "@/assets/avatar-emma.jpg";
 
+interface Recipe {
+  id: number;
+  name: string;
+  description: string;
+  servings: number;
+  totalTimeMinutes: number;
+  difficulty: string;
+  cuisine: string;
+  mealType: string;
+  tags: string[];
+  ingredients: Array<{
+    name: string;
+    quantity: number;
+    unit: string;
+    notes: string;
+  }>;
+  imageUrl: string;
+  rating: number;
+  ratingCount: number;
+}
+
 const HomePage = () => {
   const { scrollY } = useScroll();
   const heroOpacity = useTransform(scrollY, [0, 300], [1, 0]);
   const heroScale = useTransform(scrollY, [0, 300], [1, 0.8]);
+
+  // High-performance static recipe data - no API calls needed
+  const featuredRecipes: Recipe[] = [
+    {
+      id: 1,
+      name: "Savory Chicken Salad with Fresh Green Beans",
+      description: "A refreshing savory chicken salad with crisp green beans and tangy dressing — great for light lunches or dinners.",
+      servings: 4,
+      totalTimeMinutes: 30,
+      difficulty: "medium",
+      cuisine: "fusion",
+      mealType: "salad",
+      tags: ["quick", "light", "healthy"],
+      ingredients: [
+        { name: "boneless chicken thighs", quantity: 500, unit: "g", notes: "skinned" },
+        { name: "fresh green beans", quantity: 200, unit: "g", notes: "trimmed and blanched" },
+        { name: "lettuce", quantity: 4, unit: "cups", notes: "chopped" }
+      ],
+      imageUrl: mediterraneanImage,
+      rating: 4.7,
+      ratingCount: 142
+    },
+    {
+      id: 2,
+      name: "Creamy Tomato Basil Pasta",
+      description: "Warm pasta in a creamy tomato basil sauce — comfort food for any day of the week.",
+      servings: 4,
+      totalTimeMinutes: 35,
+      difficulty: "easy",
+      cuisine: "italian",
+      mealType: "dinner",
+      tags: ["comfort-food", "vegetarian"],
+      ingredients: [
+        { name: "pasta", quantity: 400, unit: "g", notes: "spaghetti or your choice" },
+        { name: "olive oil", quantity: 2, unit: "tbsp", notes: "" },
+        { name: "garlic", quantity: 3, unit: "cloves", notes: "minced" }
+      ],
+      imageUrl: curryImage,
+      rating: 4.5,
+      ratingCount: 98
+    },
+    {
+      id: 3,
+      name: "Garlic Lemon Roasted Salmon",
+      description: "Tender salmon fillets roasted with garlic and lemon — simple, healthy, and elegant.",
+      servings: 4,
+      totalTimeMinutes: 23,
+      difficulty: "easy",
+      cuisine: "american",
+      mealType: "dinner",
+      tags: ["pescatarian", "healthy"],
+      ingredients: [
+        { name: "salmon fillets", quantity: 4, unit: "", notes: "approx. 150 g each" },
+        { name: "olive oil", quantity: 2, unit: "tbsp", notes: "" },
+        { name: "garlic", quantity: 3, unit: "cloves", notes: "minced" }
+      ],
+      imageUrl: stirfryImage,
+      rating: 4.8,
+      ratingCount: 210
+    }
+  ];
 
   const previewMessages = [
     { id: "1", role: "user" as const, content: "I have chicken, bell peppers, rice, and soy sauce" },
@@ -129,12 +213,6 @@ const HomePage = () => {
       description: "Learn substitutions and cooking techniques from our culinary database.",
       gradient: "from-primary to-secondary",
     },
-  ];
-
-  const mockRecipes = [
-    { name: "Mediterranean Bowl", image: mediterraneanImage, time: "25 min", tags: ["Vegetarian", "Healthy"], pantryMatch: 7 },
-    { name: "Spicy Thai Curry", image: curryImage, time: "35 min", tags: ["Vegan", "Asian"], pantryMatch: 5 },
-    { name: "Asian Stir-Fry", image: stirfryImage, time: "20 min", tags: ["Quick", "Protein"], pantryMatch: 6 },
   ];
 
   return (
@@ -484,46 +562,75 @@ const HomePage = () => {
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-10 mb-16">
-            {mockRecipes.map((recipe, index) => (
+            {featuredRecipes.map((recipe, index) => (
               <motion.div
-                key={recipe.name}
+                key={recipe.id}
                 initial={{ opacity: 0, y: 40 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ delay: index * 0.15, duration: 0.6 }}
-                whileHover={{ y: -12 }}
+                whileHover={{ y: -12, scale: 1.02 }}
               >
-                <Card className="overflow-hidden hover:shadow-glow transition-all duration-500 group bg-white/60 backdrop-blur-xl rounded-3xl border border-white/30">
-                  <div className="relative h-64 overflow-hidden">
+                <Card className="overflow-hidden shadow-2xl hover:shadow-glow hover:border-primary/30 transition-all duration-500 group bg-white/80 backdrop-blur-xl rounded-3xl border-2 border-white/50 h-full">
+                  <div className="relative h-72 overflow-hidden">
                     <img
-                      src={recipe.image}
+                      src={recipe.imageUrl || (recipe as any).image}
                       alt={recipe.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <Badge className="absolute top-4 right-4 bg-primary/90 backdrop-blur">
-                      {recipe.pantryMatch} items match
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                    
+                    {/* Rating Badge */}
+                    <Badge className="absolute top-4 right-4 bg-primary/95 backdrop-blur-md border border-white/20 text-white shadow-lg">
+                      <span className="flex items-center gap-1">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        {recipe.rating} ({recipe.ratingCount})
+                      </span>
                     </Badge>
-                  </div>
-                  <CardContent className="p-6 space-y-4">
-                    <h3 className="font-bold text-xl">{recipe.name}</h3>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      {recipe.time}
+
+                    {/* Difficulty Badge */}
+                    <Badge className="absolute top-4 left-4 bg-secondary/90 backdrop-blur-md border border-white/20 text-white shadow-lg">
+                      <span className="flex items-center gap-1">
+                        <BarChart3 className="h-3 w-3" />
+                        {recipe.difficulty}
+                      </span>
+                    </Badge>
+
+                    {/* Recipe title overlay */}
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <h3 className="font-bold text-2xl text-white mb-2 drop-shadow-lg">{recipe.name}</h3>
+                      <div className="flex items-center gap-4 text-white/90">
+                        <div className="flex items-center gap-1 text-sm">
+                          <Clock className="h-4 w-4" />
+                          {recipe.totalTimeMinutes} min
+                        </div>
+                        <div className="flex items-center gap-1 text-sm">
+                          <UserCheck className="h-4 w-4" />
+                          {recipe.servings} servings
+                        </div>
+                      </div>
                     </div>
+                  </div>
+                  
+                  <CardContent className="p-6 space-y-4">
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {recipe.description}
+                    </p>
+                    
                     <div className="flex flex-wrap gap-2">
-                      {recipe.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary">
+                      {recipe.tags.slice(0, 3).map((tag) => (
+                        <Badge key={tag} variant="secondary" className="text-xs px-3 py-1 bg-muted/80 capitalize">
                           {tag}
                         </Badge>
                       ))}
+                      <Badge variant="outline" className="text-xs px-3 py-1 capitalize">
+                        {recipe.cuisine}
+                      </Badge>
                     </div>
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        View
-                      </Button>
-                      <Button size="sm" className="flex-1" asChild>
-                        <Link to="/create">Open in Chat</Link>
+                    
+                    <div className="flex gap-3 pt-2">
+                      <Button variant="outline" size="sm" className="flex-1 hover:bg-primary hover:text-primary-foreground transition-colors" asChild>
+                        <Link to={`/recipes/${recipe.id}`}>View Recipe</Link>
                       </Button>
                     </div>
                   </CardContent>
@@ -533,7 +640,7 @@ const HomePage = () => {
           </div>
 
           <div className="text-center">
-            <Button size="lg" variant="glass" asChild className="text-lg">
+            <Button size="lg" asChild className="text-lg px-8 py-6 shadow-glow">
               <Link to="/explore">
                 View All Recipes
                 <Award className="h-5 w-5 ml-2" />
